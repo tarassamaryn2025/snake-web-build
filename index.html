@@ -3,12 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+  <meta name="viewport"
+        content="width=device-width, height=device-height, initial-scale=1.0,
+                 user-scalable=no, shrink-to-fit=yes">
   <title>Snakey Game</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
 </head>
 <body>
+
+<div id="config-panel">
+  <div id="config-panel-inner">
+    <h1>Snakey Game client config</h1>
+
+    <label class="config-label">
+      Auth token
+      <input id="input-auth-token"
+             class="config-input"
+             type="text"
+             placeholder="TEST_TOKEN">
+    </label>
+
+    <label class="config-label">
+      Server address
+      <input id="input-server-address"
+             class="config-input"
+             type="text"
+             placeholder="127.0.0.1">
+    </label>
+
+    <label class="config-label">
+      Server port
+      <input id="input-server-port"
+             class="config-input"
+             type="text"
+             placeholder="7777">
+    </label>
+
+    <label class="config-label">
+      Player session ID
+      <input id="input-player-session-id"
+             class="config-input"
+             type="text"
+             placeholder="TEST_SESSION">
+    </label>
+
+    <button id="start-button">Start game</button>
+  </div>
+</div>
+
 <div id="unity-container">
   <canvas id="unity-canvas" tabindex="-1"></canvas>
 
@@ -22,72 +65,107 @@
 </div>
 
 <script>
-  const container = document.getElementById('unity-container');
-  const canvas = document.getElementById('unity-canvas');
-  const loadingBar = document.getElementById('unity-loading-bar');
-  const progressFull = document.getElementById('unity-progress-bar-full');
-  const warningBox = document.getElementById('unity-warning');
+  const configPanel = document.getElementById("config-panel");
+  const startButton = document.getElementById("start-button");
+
+  const container = document.getElementById("unity-container");
+  const canvas = document.getElementById("unity-canvas");
+  const loadingBar = document.getElementById("unity-loading-bar");
+  const progressFull = document.getElementById("unity-progress-bar-full");
+  const warningBox = document.getElementById("unity-warning");
 
   function unityShowBanner(msg, type)
   {
     warningBox.textContent = msg;
-    warningBox.style.display = 'block';
+    warningBox.style.display = "block";
 
-    if (type === 'warning')
+    if (type === "warning")
     {
       setTimeout(() =>
       {
-        warningBox.style.display = 'none';
-        warningBox.textContent = '';
+        warningBox.style.display = "none";
+        warningBox.textContent = "";
       }, 5000);
     }
   }
 
   function fitCanvas()
   {
-    // Розтягуємо полотно на весь розмір вікна (без справжнього browser fullscreen)
-    canvas.style.width = '100vw';
-    canvas.style.height = '100vh';
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
   }
 
-  window.addEventListener('resize', fitCanvas);
-  fitCanvas();
+  window.addEventListener("resize", fitCanvas);
 
-  const buildUrl = 'Build';
-  const loaderUrl = buildUrl + '/snake-web-build.loader.js';
+  const buildUrl = "Build";
+  const loaderUrl = buildUrl + "/snake-web-build.loader.js";
 
-  const config = {
+  const unityConfig = {
     arguments: [],
-    dataUrl: buildUrl + '/snake-web-build.data',
-    frameworkUrl: buildUrl + '/snake-web-build.framework.js',
-    codeUrl: buildUrl + '/snake-web-build.wasm',
-    streamingAssetsUrl: 'StreamingAssets',
-    companyName: 'Osambit',
-    productName: 'Snakey Game',
-    productVersion: '0.1',
+    dataUrl: buildUrl + "/snake-web-build.data",
+    frameworkUrl: buildUrl + "/snake-web-build.framework.js",
+    codeUrl: buildUrl + "/snake-web-build.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "Osambit",
+    productName: "Snakey Game",
+    productVersion: "0.1",
     showBanner: unityShowBanner,
     devicePixelRatio: Math.min(2, window.devicePixelRatio || 1)
   };
 
-  loadingBar.style.display = 'block';
-
-  const script = document.createElement('script');
-  script.src = loaderUrl;
-  script.onload = () =>
+  function loadUnity()
   {
-    createUnityInstance(canvas, config, (progress) =>
-    {
-      progressFull.style.width = (progress * 100) + '%';
-    }).then((unityInstance) =>
-    {
-      loadingBar.style.display = 'none';
-    }).catch((message) =>
-    {
-      alert(message);
-    });
-  };
+    loadingBar.style.display = "block";
+    fitCanvas();
 
-  document.body.appendChild(script);
+    const script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () =>
+    {
+      createUnityInstance(canvas, unityConfig, (progress) =>
+      {
+        progressFull.style.width = (progress * 100) + "%";
+      }).then((unityInstance) =>
+      {
+        loadingBar.style.display = "none";
+      }).catch((message) =>
+      {
+        alert(message);
+      });
+    };
+
+    document.body.appendChild(script);
+  }
+
+  startButton.addEventListener("click", () =>
+  {
+    const authTokenInput = document.getElementById("input-auth-token");
+    const serverAddressInput = document.getElementById("input-server-address");
+    const serverPortInput = document.getElementById("input-server-port");
+    const playerSessionIdInput = document.getElementById("input-player-session-id");
+    const gameSessionIdInput = document.getElementById("input-game-session-id");
+
+    const authToken = authTokenInput.value || "TEST_TOKEN";
+    const serverAddress = serverAddressInput.value || "127.0.0.1";
+    const serverPort = serverPortInput.value || "7777";
+    const playerSessionId = playerSessionIdInput.value || "TEST_SESSION";
+    const gameSessionId = playerSessionIdInput.value || "GAME_SESSION";
+
+    window.GAME_CONFIG = {
+      authToken: authToken,
+      serverAddress: serverAddress,
+      serverPort: serverPort,
+      playerSessionId: playerSessionId
+      gameSessionId: gameSessionId
+    };
+
+    console.log("GAME_CONFIG set to:", window.GAME_CONFIG);
+
+    configPanel.style.display = "none";
+    container.style.display = "flex";
+
+    loadUnity();
+  });
 </script>
 </body>
 </html>
